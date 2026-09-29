@@ -1,0 +1,44 @@
+using UnityEngine;
+
+public class BasicLarpemy : MonoBehaviour, ILarpemy
+{
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private float _health, _healthMin, _healthFactor;
+    [SerializeField] private float _damage;
+    [SerializeField] private float _speed;
+
+    public void Initialize()
+    {
+        _health = _healthMin + _healthFactor * LarpManager.Instance.GetLevel;
+    }
+
+    void FixedUpdate()
+    {
+        rb.linearVelocity = (LarpManager.Instance.GetLarper.transform.position - transform.position).normalized * _speed;  
+    }
+
+    public void TakeDmg(float damage)
+    {
+        _health -= damage;
+        if(_health <= 0){Kill();}
+    }
+
+    public void Attack()
+    {
+        
+    }
+
+    public void Kill()
+    {
+        LarpManager.Instance.RemoveEnemy(gameObject);
+    }
+
+    void OnCollisonEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject == LarpManager.Instance.GetLarper.gameObject)
+        {
+            LarpManager.Instance.GetLarper.Damage(_damage, transform.position);
+        }    
+    }
+
+}

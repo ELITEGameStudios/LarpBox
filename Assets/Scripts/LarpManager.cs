@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 public class LarpManager : MonoBehaviour
@@ -38,6 +39,7 @@ public class LarpManager : MonoBehaviour
 
     [SerializeField] private Text levelTimer, hpTracker; 
     [SerializeField] private GameObject menusCollection; 
+    [SerializeField] private Light2D globalLight; 
 
     void Awake()
     {
@@ -102,9 +104,10 @@ public class LarpManager : MonoBehaviour
         _timeToNextLevel = 5 + _level * 2;
         _timerInLevel = 0;
         GetLarper.Revive();
-        
+
         StartCoroutine(_currentLarp.SpawnCoroutine());
         LarpMessageManager.Instance.Announce("Round " + _level);
+        globalLight.color = Color.HSVToRGB(Random.Range(0f, 1f), 0.6f, 1);
     }
 
     public void EndGame()
@@ -142,6 +145,7 @@ public class LarpManager : MonoBehaviour
         _level++;
         
         _spawningHasEnded = false;
+        _currentLarp?.End();
         List<ILarp> choosableLarps = _larps.ToList();
         choosableLarps.Remove(_currentLarp);
         _currentLarp = choosableLarps[Random.Range(0, choosableLarps.Count)];

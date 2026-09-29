@@ -22,6 +22,7 @@ public class DiscreteSpawnsLarp : MonoBehaviour, ILarp
     public void Start()
     {
         LarpManager.Instance.AddLarp(this);
+        mapRootObject.SetActive(false);
     }
 
     public void Initialize(){

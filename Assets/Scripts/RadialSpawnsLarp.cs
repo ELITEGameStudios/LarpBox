@@ -26,6 +26,7 @@ public class RadialSpawnsLarp : MonoBehaviour, ILarp
     void Start()
     {
         LarpManager.Instance.AddLarp(this);
+        mapRootObject.SetActive(false);
     }
     
     public void Initialize(){

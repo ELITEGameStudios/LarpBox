@@ -20,82 +20,133 @@ public class LarpManager : MonoBehaviour
     }
 
 
-    private GameState state;
-    public GameState GetState => state;
+    private GameState _state;
+    public GameState GetState => _state;
 
 
-    [SerializeField] private ILarp[] larps; 
-    [SerializeField] private ILarp currentLarp; 
-    [SerializeField] private List<GameObject> enemyList; 
+    [SerializeField] private int expectedLarpCount = 3; 
+    [SerializeField] private List<ILarp> _larps; 
+    [SerializeField] private List<GameObject> _enemyList; 
+    private ILarp _currentLarp; 
 
-    [SerializeField] private bool spawningHasEnded;
-    [SerializeField] private bool anyEnemyIsAlive => enemyList.Count > 0;
+    [SerializeField] private bool _spawningHasEnded;
+    public bool AnyEnemyIsAlive => _enemyList.Count > 0;
+
+
+
+    [SerializeField] private GameObject menusCollection; 
 
     void Awake()
     {
         if (Instance == null) {Instance = this;}
         else if (Instance != this){Destroy(this);}
 
-        enemyList = new();
+        _enemyList = new();
+        _larps = new();
     }
+    public void AddLarp(ILarp larp)
+    {
+        _larps.Add(larp);
+        if(_larps.Count == expectedLarpCount){
+            Menus();
+        }
+    }
+
 
     void Update()
     {
-        switch (state)
+        switch (_state)
         {
+            case GameState.MENUS:
+                if (Input.GetKey(KeyCode.Space))
+                {
+                    BeginGame();
+                }
+                break;
+
+
             case GameState.GAME:
-                if(spawningHasEnded && !anyEnemyIsAlive)
+                if(_spawningHasEnded && !AnyEnemyIsAlive)
                 {
                     TransitionMap();
                 }
                 break;
+
+            case GameState.DEAD:
+                if (Input.GetKey(KeyCode.Space))
+                {
+                    Menus();
+                }
+                break;
+
         }
+    }
+
+    void BeginGame()
+    {
+        _state = GameState.GAME;
+        LarpMessageManager.Instance.Announce("Round " + _level);
+        StartCoroutine(_currentLarp.SpawnCoroutine());
     }
 
     void BeginRound()
     {
-        StartCoroutine(currentLarp.SpawnCoroutine());
+        StartCoroutine(_currentLarp.SpawnCoroutine());
         LarpMessageManager.Instance.Announce("Round " + _level);
     }
 
     public void EndGame()
     {
-        
+        _state = GameState.DEAD;
+        LarpMessageManager.Instance.AnnouncePerma("UR DEAD\n Press Space to Restart", Color.red);
+        StopAllCoroutines();
     }
 
     void Menus()
     {
+        for (int i = _enemyList.Count-1; i >= 0; i--){
+            _enemyList[i].GetComponent<ILarpemy>().Kill();
+        }
         
+        _level = 0;
+        TransitionMap();
+        _state = GameState.MENUS;
+        GetLarper.Revive();
+
+        
+        LarpMessageManager.Instance.AnnouncePerma("Press SPACE to play.", Color.cyan);
+
     }
 
     void TransitionMap()
     {
         _level++;
+        
+        _spawningHasEnded = false;
+        List<ILarp> choosableLarps = _larps.ToList();
+        choosableLarps.Remove(_currentLarp);
+        _currentLarp = choosableLarps[Random.Range(0, choosableLarps.Count)];
 
-        List<ILarp> choosableLarps = larps.ToList();
-        choosableLarps.Remove(currentLarp);
-        currentLarp = choosableLarps[Random.Range(0, choosableLarps.Count)];
-
-        currentLarp.Initialize();
-        BeginRound();
+        _currentLarp.Initialize();
+        if(_state == GameState.GAME) BeginRound();
     }
 
     public void NewEnemy(GameObject prefab, Vector2 position)
     {
         GameObject newEnemy = Instantiate(prefab, position, transform.rotation);
         newEnemy.GetComponent<ILarpemy>()?.Initialize();
-        enemyList.Add(newEnemy);
+        _enemyList.Add(newEnemy);
     }
 
     public void RemoveEnemy(GameObject enemy)
     {
         // enemy.GetComponent<ILarpemy>()?.Kill();
-        if(enemyList.Contains(enemy)){enemyList.Remove(enemy);}
+        if(_enemyList.Contains(enemy)){_enemyList.Remove(enemy);}
         Destroy(enemy);
     }
 
     public void SignalEndOfSpawning()
     {
-        spawningHasEnded = true;
+        _spawningHasEnded = true;
     }
 }

@@ -7,8 +7,10 @@ public class Larper : MonoBehaviour
     public float startingHealth;
     public float forcePerDmg;
     public float forceTimeDmgValue = 20;
+    public float _currentHitCooldown;
 
 
+    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private float _health;
     [SerializeField] private Vector2 moveInput;
     [SerializeField] private Rigidbody2D rb;
@@ -30,7 +32,11 @@ public class Larper : MonoBehaviour
 
     void FixedUpdate()
     {
-        Vector2 movement = moveInput * speed * Time.fixedDeltaTime;
+        if(LarpManager.Instance.GetState != LarpManager.GameState.GAME){return;}
+
+        if(_currentHitCooldown > 0){_currentHitCooldown -= Time.deltaTime;}
+
+        Vector2 movement = moveInput * speed;
         if (UsingForce)
         {
             rb.linearVelocity = Vector2.Lerp(movement, _incomingForce, _forceTimer / _forceTime);
@@ -43,21 +49,27 @@ public class Larper : MonoBehaviour
         
     }
 
-    public void Begin()
+    public void Revive()
     {
+        spriteRenderer.enabled = true;
         _health = startingHealth;
         transform.position = Vector2.zero;
     }
 
-    public void Damage(float damage, Vector2 position)
-    {
+
+    public bool Damage(float damage, Vector2 position)
+    {  
+        if(_currentHitCooldown > 0){return false;}
+
         _health -= damage;
         if(_health <= 0){Die();}
 
-        Vector2 forceDir = (position - (Vector2)transform.position).normalized;
+        Vector2 forceDir = ((Vector2)transform.position - position).normalized;
+        float forceTime = 0.3f * Mathf.Sqrt(damage/forceTimeDmgValue);
 
-        ApplyForce(forceDir * forcePerDmg * damage, 0.3f * Mathf.Sqrt(damage/forceTimeDmgValue));
-
+        ApplyForce(damage * forcePerDmg * forceDir, forceTime);
+        _currentHitCooldown = forceTime + 0.2f;
+        return true;
     }
 
     public void ApplyForce(Vector2 force, float time = 0.3f)
@@ -69,6 +81,7 @@ public class Larper : MonoBehaviour
 
     private void Die()
     {
+        spriteRenderer.enabled = false;
         LarpManager.Instance.EndGame();
     }
 }

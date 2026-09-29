@@ -21,9 +21,13 @@ public class RadialSpawnsLarp : MonoBehaviour, ILarp
     public List<RadialSpawnInfo> spawnsList;
     public int stepFactor;
     public float timeBetweenSteps;
-    public float timeBetweenSpawns;
 
 
+    void Start()
+    {
+        LarpManager.Instance.AddLarp(this);
+    }
+    
     public void Initialize(){
         mapRootObject.SetActive(true);
     }
@@ -39,7 +43,7 @@ public class RadialSpawnsLarp : MonoBehaviour, ILarp
 
     public IEnumerator SpawnCoroutine()
     {
-        int steps = LarpManager.Instance.GetLevel / stepFactor;
+        int steps = LarpManager.Instance.GetLevel+1 / stepFactor;
         for (int i = 0; i < steps; i++)
         {
             int index = i % spawnsList.Count;
@@ -53,7 +57,7 @@ public class RadialSpawnsLarp : MonoBehaviour, ILarp
                 Vector2 position = GetVectorByAngle(angle) * spawn.radius;
                 
                 LarpManager.Instance.NewEnemy(spawn.prefabs[j % spawn.prefabs.Length], position);
-                yield return new WaitForSeconds(timeBetweenSpawns);
+                yield return new WaitForSeconds(spawn.interval);
                 
             }
 

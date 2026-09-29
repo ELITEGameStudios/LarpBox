@@ -8,6 +8,11 @@ public class LarpMessageManager : MonoBehaviour
     private float currentTime, targetTime;
     private bool active;
     [SerializeField] private Text text;
+    void Awake()
+    {
+        if(Instance == null){Instance = this;}
+        else if(Instance != this){Destroy(this);}
+    }
 
     public void Announce(string message, int time = 4, Color? color = null)
     {
@@ -18,6 +23,22 @@ public class LarpMessageManager : MonoBehaviour
         
         text.enabled = true;
         active = true;
+    }
+    
+    public void AnnouncePerma(string message, Color? color = null)
+    {
+        text.text = message;
+        currentTime = 0;
+        targetTime = Mathf.Infinity;
+        text.color = color ?? Color.white;  
+        
+        text.enabled = true;
+        active = true;
+    }
+
+    public void StopAnnouncement()
+    {
+        Stop();
     }
 
     void Update()

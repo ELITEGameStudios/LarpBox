@@ -25,7 +25,7 @@ public class BasicLarpemy : MonoBehaviour, ILarpemy
 
     public void Attack()
     {
-        
+        LarpManager.Instance.GetLarper.Damage(_damage, transform.position);
     }
 
     public void Kill()
@@ -33,11 +33,21 @@ public class BasicLarpemy : MonoBehaviour, ILarpemy
         LarpManager.Instance.RemoveEnemy(gameObject);
     }
 
-    void OnCollisonEnter2D(Collision2D collision)
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject == LarpManager.Instance.GetLarper.gameObject)
+        if(collision.gameObject.tag == "Larper")
         {
-            LarpManager.Instance.GetLarper.Damage(_damage, transform.position);
+            Debug.Log("Yikes");
+            Attack();
+        }    
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if(collision.gameObject.tag == "Larper")
+        {
+            Debug.Log("Yikes");
+            Attack();
         }    
     }
 

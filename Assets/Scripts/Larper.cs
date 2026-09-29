@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Alias for Player, handles much of the player logic.
 public class Larper : MonoBehaviour
 {
 
@@ -15,9 +16,8 @@ public class Larper : MonoBehaviour
     [SerializeField] private float _health;
     [SerializeField] private Vector2 moveInput;
     [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private IWeapon weapon;
 
-
+    // For handling custom Kb taken from enemies
     [SerializeField] private float _forceTime, _forceTimer;
     [SerializeField] private Vector2 _incomingForce;
     [SerializeField] private bool UsingForce => _forceTimer > 0;
@@ -40,6 +40,7 @@ public class Larper : MonoBehaviour
         Vector2 movement = moveInput * _speed;
         if (UsingForce)
         {
+            // Will Apply Kb to the movement for a very short time frame, temporarily taking movement control
             rb.linearVelocity = Vector2.Lerp(movement, _incomingForce, _forceTimer / _forceTime);
             _forceTimer -= Time.fixedDeltaTime;   
         }
@@ -52,6 +53,7 @@ public class Larper : MonoBehaviour
 
     public void Revive()
     {
+        // Called to both bring back the player from death on reset as well as to reset the player in between maps.
         spriteRenderer.enabled = true;
         _health = startingHealth;
         transform.position = Vector2.zero;
@@ -61,6 +63,7 @@ public class Larper : MonoBehaviour
 
     public bool Damage(float damage, Vector2 position)
     {  
+        // Will damage the player if hit cooldown is a non-factor
         if(_currentHitCooldown > 0){return false;}
 
         _health -= damage;
@@ -81,6 +84,7 @@ public class Larper : MonoBehaviour
 
     public void ApplyForce(Vector2 force, float time = 0.3f)
     {
+        // Sets a new custom force
         _incomingForce = force;
         _forceTime = time;
         _forceTimer = time;
@@ -88,6 +92,7 @@ public class Larper : MonoBehaviour
 
     private void Die()
     {
+        // Ends the game
         spriteRenderer.enabled = false;
         LarpManager.Instance.EndGame();
     }

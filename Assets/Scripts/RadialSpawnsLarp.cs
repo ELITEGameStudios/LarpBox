@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class RadialSpawnsLarp : MonoBehaviour, ILarp
 {
+    // Uses ILarp (For Maps) to customize mostly the spawn process. "Map" and spawn behaviours are linked
     [SerializeField] GameObject mapRootObject;
     
     [System.Serializable]
@@ -44,6 +45,8 @@ public class RadialSpawnsLarp : MonoBehaviour, ILarp
 
     public IEnumerator SpawnCoroutine()
     {
+        // Spawns a variable number of enemies along a circle arc based on the RadialSpawnInfo parameters given. This will loop through the spawn info list if nessecary to continue its assigned spawn steps.
+
         int steps = LarpManager.Instance.GetLevel+1 / stepFactor;
         for (int i = 0; i < steps; i++)
         {
@@ -64,8 +67,6 @@ public class RadialSpawnsLarp : MonoBehaviour, ILarp
 
             yield return new WaitForSeconds(timeBetweenSteps);
         }
-
-        LarpManager.Instance.SignalEndOfSpawning();
     }
 
     public void End()

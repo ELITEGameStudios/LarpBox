@@ -5,8 +5,10 @@ using UnityEngine;
 
 public class DiscreteSpawnsLarp : MonoBehaviour, ILarp
 {
+    // Uses ILarp (For Maps) to customize mostly the spawn process. "Map" and spawn behaviours are linked
     [SerializeField] GameObject mapRootObject;
     
+    // Spawn data serialized into a struct for the unity editor
     [System.Serializable]
     public struct DiscreteSpawnInfo
     {
@@ -21,6 +23,7 @@ public class DiscreteSpawnsLarp : MonoBehaviour, ILarp
 
     public void Start()
     {
+        // Adding to LarpManager
         LarpManager.Instance.AddLarp(this);
         mapRootObject.SetActive(false);
     }
@@ -29,7 +32,8 @@ public class DiscreteSpawnsLarp : MonoBehaviour, ILarp
         mapRootObject.SetActive(true);
     }
 
-
+    // Spawn Coroutine shared from interface
+    // Spawns the exact position and enemy pairs in a random order, and loops if the round is high enough.
     public IEnumerator SpawnCoroutine()
     {
         int loops = LarpManager.Instance.GetLevel+1 / loopFactor;
@@ -50,7 +54,6 @@ public class DiscreteSpawnsLarp : MonoBehaviour, ILarp
             yield return new WaitForSeconds(timeBetweenLoops);
         }
 
-        LarpManager.Instance.SignalEndOfSpawning();
     }
 
     public void End()

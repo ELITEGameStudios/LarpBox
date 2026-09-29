@@ -4,15 +4,20 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
+// The alias for GameManager, handles the core game state and logic.
 public class LarpManager : MonoBehaviour
 {
+    // Declaring singleton
     public static LarpManager Instance {get; private set;}
+    
+    // Player reference (Known as Larper)
     [SerializeField] private Larper _larper;
     public Larper GetLarper => _larper; 
 
     private int _level;
     public int GetLevel => _level;
 
+    // Basic game states
     public enum GameState
     {
         MENUS,
@@ -26,16 +31,17 @@ public class LarpManager : MonoBehaviour
     public GameState GetState => _state;
 
 
-    [SerializeField] private int expectedLarpCount = 3; 
+    // Map management factory implementation (Denoted Larp management)
+    private ILarp _currentLarp; 
     [SerializeField] private List<ILarp> _larps; 
     [SerializeField] private List<GameObject> _enemyList; 
-    private ILarp _currentLarp; 
+    [SerializeField] private int expectedLarpCount = 3; 
 
-    [SerializeField] private bool _spawningHasEnded;
-    public bool AnyEnemyIsAlive => _enemyList.Count > 0;
 
+    // Game timer management
     [SerializeField] private float _timerInLevel, _timeToNextLevel;
 
+    // Ui and Aesthetics references
 
     [SerializeField] private Text levelTimer, hpTracker; 
     [SerializeField] private GameObject menusCollection; 
@@ -43,6 +49,7 @@ public class LarpManager : MonoBehaviour
 
     void Awake()
     {
+        // Singleton implementation
         if (Instance == null) {Instance = this;}
         else if (Instance != this){Destroy(this);}
 
@@ -51,6 +58,7 @@ public class LarpManager : MonoBehaviour
     }
     public void AddLarp(ILarp larp)
     {
+        // Maps add themselves to the pool before proceeding with game logic. Expected larp count should be hit
         _larps.Add(larp);
         if(_larps.Count == expectedLarpCount){
             Menus();
@@ -60,9 +68,12 @@ public class LarpManager : MonoBehaviour
 
     void Update()
     {
+
         switch (_state)
         {
             case GameState.MENUS:
+                
+                // Space input to play in menus
                 levelTimer.text = "";
                 if (Input.GetKey(KeyCode.Space))
                 {
@@ -72,9 +83,11 @@ public class LarpManager : MonoBehaviour
 
 
             case GameState.GAME:
+                // Updating UI
                 levelTimer.text = _timerInLevel + " / " + _timeToNextLevel;
                 hpTracker.text = GetLarper.GetHp() + " HP";
 
+                // Updating timer and transitioning if target time is hit
                 _timerInLevel+=Time.deltaTime;
                 if(_timerInLevel > _timeToNextLevel)
                 {
@@ -83,6 +96,8 @@ public class LarpManager : MonoBehaviour
                 break;
 
             case GameState.DEAD:
+
+                // Input to return to menus
                 levelTimer.text = _timerInLevel.ToString();
                 if (Input.GetKey(KeyCode.Space))
                 {
@@ -105,6 +120,7 @@ public class LarpManager : MonoBehaviour
         _timerInLevel = 0;
         GetLarper.Revive();
 
+        // Using _currentLarp (Map)'s interface implementation to begin customizable spawn patterns
         StartCoroutine(_currentLarp.SpawnCoroutine());
         LarpMessageManager.Instance.Announce("Round " + _level);
         globalLight.color = Color.HSVToRGB(Random.Range(0f, 1f), 0.6f, 1);
@@ -113,6 +129,7 @@ public class LarpManager : MonoBehaviour
     public void EndGame()
     {
         _state = GameState.DEAD;
+        // Using LarpMessageManager (Just the big UI element)'s singleton implementation to show dead message
         LarpMessageManager.Instance.AnnouncePerma("UR DEAD\n Press Space to Restart", Color.red);
         StopAllCoroutines();
     }
@@ -133,6 +150,7 @@ public class LarpManager : MonoBehaviour
         GetLarper.Revive();
 
         
+        // Using LarpMessageManager (Just the big UI element)'s singleton implementation to show play button
         LarpMessageManager.Instance.AnnouncePerma("Press SPACE to play.", Color.cyan);
 
     }
@@ -144,7 +162,6 @@ public class LarpManager : MonoBehaviour
 
         _level++;
         
-        _spawningHasEnded = false;
         _currentLarp?.End();
         List<ILarp> choosableLarps = _larps.ToList();
         choosableLarps.Remove(_currentLarp);
@@ -166,10 +183,5 @@ public class LarpManager : MonoBehaviour
         // enemy.GetComponent<ILarpemy>()?.Kill();
         if(_enemyList.Contains(enemy)){_enemyList.Remove(enemy);}
         Destroy(enemy);
-    }
-
-    public void SignalEndOfSpawning()
-    {
-        _spawningHasEnded = true;
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// One of the two enemy variants implementing ILarpemy
 public class BasicLarpemy : MonoBehaviour, ILarpemy
 {
     [SerializeField] private Rigidbody2D rb;
@@ -9,6 +10,7 @@ public class BasicLarpemy : MonoBehaviour, ILarpemy
     [SerializeField] private float _damage;
     [SerializeField] private float _speed;
 
+    // Implemented from ILarpemy
     public void Initialize()
     {
         _speed = speedBase + Random.Range(-speedVariance, speedVariance);
@@ -20,11 +22,13 @@ public class BasicLarpemy : MonoBehaviour, ILarpemy
     }
 
 
+    // Implemented from ILarpemy
     public void Attack()
     {
         LarpManager.Instance.GetLarper.Damage(_damage, transform.position);
     }
 
+    // Implemented from ILarpemy
     public void Kill()
     {
         LarpManager.Instance.RemoveEnemy(gameObject);

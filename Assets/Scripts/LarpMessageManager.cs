@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+
+// The main UI element in the game to inform the player of gamestate or what to do. Implements a Singleton Pattern
 public class LarpMessageManager : MonoBehaviour
 {
     public static LarpMessageManager Instance {get; private set;}
@@ -8,12 +10,14 @@ public class LarpMessageManager : MonoBehaviour
     private float currentTime, targetTime;
     private bool active;
     [SerializeField] private Text text;
+
     void Awake()
     {
         if(Instance == null){Instance = this;}
         else if(Instance != this){Destroy(this);}
     }
 
+    // Can be called to announce anything for a given period of time. Will override the latest announcement if the previous is still active
     public void Announce(string message, int time = 4, Color? color = null)
     {
         text.text = message;
@@ -25,6 +29,7 @@ public class LarpMessageManager : MonoBehaviour
         active = true;
     }
     
+    // Can announce things permenantly until StopAnnouncement is called or a new announcement is given.
     public void AnnouncePerma(string message, Color? color = null)
     {
         text.text = message;
@@ -36,6 +41,7 @@ public class LarpMessageManager : MonoBehaviour
         active = true;
     }
 
+    // Stops the current announcement, can be called by any exterior class
     public void StopAnnouncement()
     {
         Stop();
@@ -56,6 +62,7 @@ public class LarpMessageManager : MonoBehaviour
 
     }
 
+    // Stops the current announcement, 
     void Stop()
     {
         text.enabled = false;

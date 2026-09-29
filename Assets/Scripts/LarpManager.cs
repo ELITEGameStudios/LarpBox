@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LarpManager : MonoBehaviour
 {
@@ -32,8 +33,10 @@ public class LarpManager : MonoBehaviour
     [SerializeField] private bool _spawningHasEnded;
     public bool AnyEnemyIsAlive => _enemyList.Count > 0;
 
+    [SerializeField] private float _timerInLevel, _timeToNextLevel;
 
 
+    [SerializeField] private Text levelTimer, hpTracker; 
     [SerializeField] private GameObject menusCollection; 
 
     void Awake()
@@ -58,6 +61,7 @@ public class LarpManager : MonoBehaviour
         switch (_state)
         {
             case GameState.MENUS:
+                levelTimer.text = "";
                 if (Input.GetKey(KeyCode.Space))
                 {
                     BeginGame();
@@ -66,13 +70,18 @@ public class LarpManager : MonoBehaviour
 
 
             case GameState.GAME:
-                if(_spawningHasEnded && !AnyEnemyIsAlive)
+                levelTimer.text = _timerInLevel + " / " + _timeToNextLevel;
+                hpTracker.text = GetLarper.GetHp() + " HP";
+
+                _timerInLevel+=Time.deltaTime;
+                if(_timerInLevel > _timeToNextLevel)
                 {
                     TransitionMap();
                 }
                 break;
 
             case GameState.DEAD:
+                levelTimer.text = _timerInLevel.ToString();
                 if (Input.GetKey(KeyCode.Space))
                 {
                     Menus();
@@ -85,12 +94,15 @@ public class LarpManager : MonoBehaviour
     void BeginGame()
     {
         _state = GameState.GAME;
-        LarpMessageManager.Instance.Announce("Round " + _level);
-        StartCoroutine(_currentLarp.SpawnCoroutine());
+        BeginRound();
     }
 
     void BeginRound()
     {
+        _timeToNextLevel = 5 + _level * 2;
+        _timerInLevel = 0;
+        GetLarper.Revive();
+        
         StartCoroutine(_currentLarp.SpawnCoroutine());
         LarpMessageManager.Instance.Announce("Round " + _level);
     }
@@ -102,12 +114,16 @@ public class LarpManager : MonoBehaviour
         StopAllCoroutines();
     }
 
-    void Menus()
+    void ClearEnemies()
     {
+        
         for (int i = _enemyList.Count-1; i >= 0; i--){
             _enemyList[i].GetComponent<ILarpemy>().Kill();
         }
-        
+    }
+
+    void Menus()
+    {
         _level = 0;
         TransitionMap();
         _state = GameState.MENUS;
@@ -120,6 +136,9 @@ public class LarpManager : MonoBehaviour
 
     void TransitionMap()
     {
+        StopAllCoroutines();
+        ClearEnemies();
+
         _level++;
         
         _spawningHasEnded = false;

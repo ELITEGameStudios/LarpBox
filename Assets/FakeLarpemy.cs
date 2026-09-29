@@ -1,28 +1,27 @@
 using UnityEngine;
 
-public class BasicLarpemy : MonoBehaviour, ILarpemy
+public class FakeLarpemy : MonoBehaviour, ILarpemy
 {
     [SerializeField] private Rigidbody2D rb;
     
-    public float speedBase, speedVariance;
-
     [SerializeField] private float _damage;
     [SerializeField] private float _speed;
+    [SerializeField] private float _startKb;
 
     public void Initialize()
     {
-        _speed = speedBase + Random.Range(-speedVariance, speedVariance);
+        rb.linearVelocity = (transform.position - LarpManager.Instance.GetLarper.transform.position).normalized * _startKb;
     }
 
     void FixedUpdate()
     {
-        rb.linearVelocity = (LarpManager.Instance.GetLarper.transform.position - transform.position).normalized * _speed;  
+        rb.AddForce((LarpManager.Instance.GetLarper.transform.position - transform.position).normalized * _speed * Time.fixedDeltaTime);  
     }
-
 
     public void Attack()
     {
         LarpManager.Instance.GetLarper.Damage(_damage, transform.position);
+        Kill();
     }
 
     public void Kill()

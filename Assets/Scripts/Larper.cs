@@ -3,7 +3,8 @@ using UnityEngine;
 public class Larper : MonoBehaviour
 {
 
-    public float speed;
+    public float startingSpeed, speedAdditiveFactor;
+    private float _speed;
     public float startingHealth;
     public float forcePerDmg;
     public float forceTimeDmgValue = 20;
@@ -36,7 +37,7 @@ public class Larper : MonoBehaviour
 
         if(_currentHitCooldown > 0){_currentHitCooldown -= Time.deltaTime;}
 
-        Vector2 movement = moveInput * speed;
+        Vector2 movement = moveInput * _speed;
         if (UsingForce)
         {
             rb.linearVelocity = Vector2.Lerp(movement, _incomingForce, _forceTimer / _forceTime);
@@ -54,6 +55,7 @@ public class Larper : MonoBehaviour
         spriteRenderer.enabled = true;
         _health = startingHealth;
         transform.position = Vector2.zero;
+        _speed = startingSpeed + speedAdditiveFactor * (LarpManager.Instance.GetLevel-1);
     }
 
 
@@ -70,6 +72,11 @@ public class Larper : MonoBehaviour
         ApplyForce(damage * forcePerDmg * forceDir, forceTime);
         _currentHitCooldown = forceTime + 0.2f;
         return true;
+    }
+
+    public float GetHp()
+    {
+        return _health;
     }
 
     public void ApplyForce(Vector2 force, float time = 0.3f)
